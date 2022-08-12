@@ -2,7 +2,7 @@ from jinja2 import Template
 import os
 
 
-def render(template_name, folder='GB_PAT/templates', **kwargs):
+def render(template_name, folder='templates', **kwargs):
     """
     :param template_name: имя шаблона
     :param folder: папка в которой ищем шаблон
