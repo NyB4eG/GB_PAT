@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}
+Список курсов
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-menu.html" %}
+{% endblock %}
+{% block body %}
+    <h1>Список вэбинаров для категории "{{name}}"</h1>
+
+    <br>
+
+    <div>
+        <a href="/create-webinar/?id={{id}}">Создать новый вэбинар</a>
+        <br>
+        {% for item in objects_list %}
+        <li>
+            Вэбинар: {{item.name}} <span><a href="/copy-webinar/?name={{item.name}}&id={{id}}">скопировать</a></span>
+        </li>
+        {% endfor %}
+    </div>
+{% endblock %}
