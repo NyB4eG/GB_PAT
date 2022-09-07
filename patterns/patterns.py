@@ -1,5 +1,6 @@
 import copy
 import quopri
+from time import time
 
 
 # порождающий паттерн Прототип - Курс
@@ -124,3 +125,33 @@ class Logger(metaclass=SingletonByName):
     @staticmethod
     def log(text):
         print('log--->', text)
+
+class AppRoute:
+    def __init__(self, routes, url):
+        self.routes = routes
+        self.url = url
+
+    def __call__(self, cls):
+        self.routes[self.url] = cls()
+
+
+class Debug:
+
+    def __init__(self, name):
+
+        self.name = name
+
+    def __call__(self, cls):
+        def timeit(method):
+            def timed(*args, **kw):
+                ts = time()
+                result = method(*args, **kw)
+                te = time()
+                delta = te - ts
+
+                print(f'Функция {self.name} выполнилась за {delta:2.2f} мс')
+                return result
+
+            return timed
+
+        return timeit(cls)

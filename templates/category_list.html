@@ -12,8 +12,8 @@
 <div>
     <h1>Список существующих категорий вэбинаров</h1>
     {% for item in objects_list %}
-    Категория: {{item.name}} <span>Количество вэбинаров: {{item.webinar_count()}}</span>
-    <a href="/webinar-list/?id={{item.id}}">Показать вэбинары</a>  </br>
+    Категория: {{item.name}} 
+    <a href="/copy-webinar/?name={{item.name}}&id={{item.id}}">Показать вэбинары</a>  </br>
     {% endfor %}
 </div>
 <div>

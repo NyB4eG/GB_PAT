@@ -1,24 +1,32 @@
 from nova_framework.templator import render
-from patterns.сreational_patterns import Engine
+from patterns.patterns import Engine,AppRoute, Debug, Logger
+
 site = Engine()
+logger = Logger('main')
+routes = {}
 
-
+@AppRoute(routes=routes, url='/')
 class Index:
+    @Debug(name='Index')
     def __call__(self, request):
         return '200 OK', render('index.html')
 
 
+@AppRoute(routes=routes, url='/contacts/')
 class Contacts:
+    @Debug(name='contacts')
     def __call__(self, request):
         return '200 OK', render('contacts.html')
 
 
 class NotFound404:
+    @Debug(name='NotFound404')
     def __call__(self, request):
         return '404 WHAT', '404 PAGE Not Found'
 
-
+@AppRoute(routes=routes, url='/create-category/')
 class CreateCategory:
+    @Debug(name='create_category')
     def __call__(self, request):
 
         if request['method'] == 'POST':
@@ -45,8 +53,9 @@ class CreateCategory:
             return '200 OK', render('create_category.html', categories=categories)
 
 
-        
+@AppRoute(routes=routes, url='/webinar-list/')       
 class WebinarList:
+    @Debug(name='webinar-list')
     def __call__(self, request):
         try:
             category = site.find_category_by_id(int(request['request_params']['id']))
@@ -55,9 +64,11 @@ class WebinarList:
         except KeyError:
             return '200 OK'
 
+
+@AppRoute(routes=routes, url='/create-webinar/') 
 class CreateWebinar:
     category_id = -1
-
+    @Debug(name='create-webinar')
     def __call__(self, request):
         if request['method'] == 'POST':
             # метод пост
@@ -85,13 +96,16 @@ class CreateWebinar:
             except KeyError:
                 return '200 OK'
 
+
+@AppRoute(routes=routes, url='/copy-webinar/') 
 class CopyWebinar:
+    @Debug(name='copy-webinar')
     def __call__(self, request):
         request_params = request['request_params']
 
         try:
             name = request_params['name']
-            self.category_id = int(request['request_params']['id'])
+
             category = site.find_category_by_id(int(request['request_params']['id']))
             old_webinar = site.get_webinar(name)
             if old_webinar:
@@ -108,6 +122,10 @@ class CopyWebinar:
         except KeyError:
             return '200 OK'
 
+
+
+@AppRoute(routes=routes, url='/category-list/') 
 class CategoryList:
+    @Debug(name='category-list')
     def __call__(self, request):
         return '200 OK', render('category_list.html', objects_list=site.categories)
