@@ -1,5 +1,5 @@
 from nova_framework.templator import render
-from patterns.patterns import Engine,AppRoute, Debug, Logger
+from patterns.patterns import Engine,AppRoute, Debug, Logger, ListView, CreateView, BaseSerializer
 
 site = Engine()
 logger = Logger('main')
@@ -129,3 +129,52 @@ class CategoryList:
     @Debug(name='category-list')
     def __call__(self, request):
         return '200 OK', render('category_list.html', objects_list=site.categories)
+
+
+@AppRoute(routes=routes, url='/student-list/')
+class StudentListView(ListView):
+    queryset = site.students
+    template_name = 'student_list.html'
+
+
+@AppRoute(routes=routes, url='/create-student/')
+class StudentCreateView(CreateView):
+    template_name = 'create_student.html'
+
+    def create_obj(self, data: dict):
+        name = data['name']
+        name = site.decode_value(name)
+        new_obj = site.create_user('student', name)
+        site.students.append(new_obj)
+
+
+@AppRoute(routes=routes, url='/add-student/')
+class AddStudentByWebinarCreateView(CreateView):
+    template_name = 'add_student.html'
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context['webinar'] = site.webinars
+        context['students'] = site.students
+        return context
+
+    def create_obj(self, data: dict):
+        webinar_name = data['webinar_name']
+        webinar_name = site.decode_value(webinar_name)
+        webinar = site.get_webinar(webinar_name)
+        student_name = data['student_name']
+        student_name = site.decode_value(student_name)
+        student = site.get_student(student_name)
+        webinar.add_student(student)
+
+@AppRoute(routes=routes, url='/api/')
+class CourseApi:
+    @Debug(name='CourseApi')
+    def __call__(self, request):
+        return '200 OK', BaseSerializer(site.webinars).save()
+
+@AppRoute(routes=routes, url='/students/') 
+class CategoryList:
+    @Debug(name='students')
+    def __call__(self, request):
+        return '200 OK', render('students.html')

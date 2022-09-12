@@ -1,7 +1,30 @@
 import copy
 import quopri
 from time import time
+from nova_framework.templator import render
+import jsonpickle
 
+class User:
+    def __init__(self, name):
+        self.name = name
+class Teacher(User):
+    pass
+
+
+class Student(User):
+
+    def __init__(self, name):
+        self.webinars = []
+        super().__init__(name)
+
+class Subject:
+
+    def __init__(self):
+        self.observers = []
+
+    def notify(self):
+        for item in self.observers:
+            item.update(self)
 
 # порождающий паттерн Прототип - Курс
 class WebinarPrototype:
@@ -11,13 +34,23 @@ class WebinarPrototype:
         return copy.deepcopy(self)
 
 
-class Webinar(WebinarPrototype):
+class Webinar(WebinarPrototype, Subject):
 
     def __init__(self, name, category):
         self.name = name
         self.category = category
         self.category.webinars.append(self)
+        self.students = []
+        super().__init__()
 
+    
+    def __getitem__(self, item):
+        return self.students[item]
+
+    def add_student(self, student: Student):
+        self.students.append(student)
+        student.webinars.append(self)
+        self.notify()
 
 # Интерактивный курс
 class InteractiveWebinar(Webinar):
@@ -27,6 +60,7 @@ class InteractiveWebinar(Webinar):
 # Курс в записи
 class RecordWebinar(Webinar):
     pass
+
 
 
 # Категория
@@ -60,6 +94,16 @@ class WebinarFactory:
     def create(cls, type_, name, category):
         return cls.types[type_](name, category)
 
+class UserFactory:
+    types = {
+        'student': Student,
+        'teacher': Teacher
+    }
+
+    # порождающий паттерн Фабричный метод
+    @classmethod
+    def create(cls, type_, name):
+        return cls.types[type_](name)
 
 # Основной интерфейс проекта
 class Engine:
@@ -96,8 +140,15 @@ class Engine:
         val_decode_str = quopri.decodestring(val_b)
         return val_decode_str.decode('UTF-8')
 
+    @staticmethod
+    def create_user(type_, name):
+        return UserFactory.create(type_, name)
 
-# порождающий паттерн Синглтон
+    def get_student(self, name) -> Student:
+        for item in self.students:
+            if item.name == name:
+                return item
+
 class SingletonByName(type):
 
     def __init__(cls, name, bases, attrs, **kwargs):
@@ -155,3 +206,71 @@ class Debug:
             return timed
 
         return timeit(cls)
+
+
+class TemplateView:
+    template_name = 'template.html'
+
+    def get_context_data(self):
+        return {}
+
+    def get_template(self):
+        return self.template_name
+
+    def render_template_with_context(self):
+        template_name = self.get_template()
+        context = self.get_context_data()
+        return '200 OK', render(template_name, **context)
+
+    def __call__(self, request):
+        return self.render_template_with_context()
+
+class ListView(TemplateView):
+    queryset = []
+    template_name = 'list.html'
+    context_object_name = 'objects_list'
+
+    def get_queryset(self):
+        print(self.queryset)
+        return self.queryset
+
+    def get_context_object_name(self):
+        return self.context_object_name
+
+    def get_context_data(self):
+        queryset = self.get_queryset()
+        context_object_name = self.get_context_object_name()
+        context = {context_object_name: queryset}
+        return context
+
+
+class CreateView(TemplateView):
+    template_name = 'create.html'
+
+    @staticmethod
+    def get_request_data(request):
+        return request['data']
+
+    def create_obj(self, data):
+        pass
+
+    def __call__(self, request):
+        if request['method'] == 'POST':
+            data = self.get_request_data(request)
+            self.create_obj(data)
+
+            return self.render_template_with_context()
+        else:
+            return super().__call__(request)
+
+class BaseSerializer:
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def save(self):
+        return jsonpickle.dumps(self.obj)
+
+    @staticmethod
+    def load(data):
+        return jsonpickle.loads(data)   
