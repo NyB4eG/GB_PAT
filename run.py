@@ -1,6 +1,7 @@
 from nova_framework.main import Framework
-from urls import routes, fronts
+from urls import fronts
 from wsgiref.simple_server import make_server
+from views import routes
 
 application = Framework(routes, fronts)
 
