@@ -1,9 +1,13 @@
-﻿<!DOCTYPE html>
-<html>
-	<head>
-		<title>Контакты</title>
-	</head>
-	<body>
-		<h1>Тут будет контактная информация</h1>
-	<body>
-</html>
+﻿{% extends "base.html" %}
+{% block title %}
+	Контакты
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-menu.html" %}
+{% endblock %}
+{% block body %}
+	{% include "inc-contacts-body.html" %}
+{% endblock %}
